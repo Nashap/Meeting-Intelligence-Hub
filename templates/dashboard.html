@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Meeting Intelligence Hub</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            background: #0b1210;
+            color: #e5e7eb;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .card {
+            background: #0f1a17;
+            border: 1px solid rgba(34,197,94,0.15);
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .tab {
+            padding: 6px 14px;
+            border-radius: 8px;
+            background: #111827;
+            color: #9ca3af;
+        }
+
+        .tab.active {
+            background: #22c55e;
+            color: black;
+        }
+
+        .chat-input {
+            background: #1e293b;
+            border-radius: 10px;
+            padding: 10px;
+            border: none;
+            width: 100%;
+        }
+
+        .send-btn {
+            background: #22c55e;
+            padding: 10px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body class="p-6">
+
+<!-- TOP CARDS -->
+<div class="grid grid-cols-4 gap-4 mb-6">
+
+    <div class="card">
+        <p class="text-gray-400 text-sm">Transcripts</p>
+        <h2 class="text-2xl font-semibold mt-2">1</h2>
+    </div>
+
+    <div class="card">
+        <p class="text-gray-400 text-sm">Action Items</p>
+        <h2 class="text-2xl font-semibold mt-2">{{ actions|length }}</h2>
+    </div>
+
+    <div class="card">
+        <p class="text-gray-400 text-sm">Decisions</p>
+        <h2 class="text-2xl font-semibold mt-2">{{ decisions|length }}</h2>
+    </div>
+
+    <div class="card">
+        <p class="text-gray-400 text-sm">Avg Sentiment</p>
+        <h2 class="text-2xl font-semibold mt-2">{{ sentiment }}</h2>
+    </div>
+
+</div>
+
+<!-- TABS -->
+<div class="flex gap-2 mb-4">
+    <button class="tab active" onclick="showTab('main', this)">Decisions & Actions</button>
+    <button class="tab" onclick="showTab('chat', this)">Chatbot</button>
+    <button class="tab" onclick="showTab('trans', this)">Transcript</button>
+</div>
+
+<!-- EXPORT BUTTON -->
+<form action="/download" method="GET" class="flex justify-end mb-4">
+
+    {% for d in decisions %}
+    <input type="hidden" name="decisions" value="{{ d }}">
+    {% endfor %}
+
+    {% for a in actions %}
+    <input type="hidden" name="actions" value="{{ a }}">
+    {% endfor %}
+
+    <button type="submit"
+        class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-700 hover:border-green-400 transition">
+
+        <i data-lucide="download" class="w-4 h-4"></i>
+        Export CSV
+    </button>
+
+</form>
+
+<!-- MAIN -->
+<div id="main">
+
+    <!-- DECISIONS -->
+    <div class="card mb-6">
+
+        <h2 class="text-lg font-semibold mb-4 text-green-400">
+            Decisions ({{ decisions|length }})
+        </h2>
+
+        <table class="w-full text-left text-sm">
+
+            <thead class="text-gray-400 border-b border-slate-700">
+                <tr>
+                    <th class="py-2">#</th>
+                    <th>Decision</th>
+                    <th>Context</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for d in decisions %}
+                <tr class="border-b border-slate-800">
+                    <td class="py-3">{{ loop.index }}</td>
+                    <td>{{ d }}</td>
+                    <td class="text-gray-400">From transcript</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="card">
+
+        <h2 class="text-lg font-semibold mb-4 text-yellow-400">
+            Action Items ({{ actions|length }})
+        </h2>
+
+        <table class="w-full text-left text-sm">
+
+            <thead class="text-gray-400 border-b border-slate-700">
+                <tr>
+                    <th class="py-2">Who</th>
+                    <th>What</th>
+                    <th>By When</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for a in actions %}
+                <tr class="border-b border-slate-800">
+                    <td class="py-3 text-green-400">
+                        {{ a.split(':')[0] if ':' in a else "Unknown" }}
+                    </td>
+                    <td>
+                        {{ a.split(':')[1] if ':' in a else a }}
+                    </td>
+                    <td class="text-gray-400">
+                        {% if "friday" in a.lower() %}
+                            Friday
+                        {% else %}
+                            Not specified
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<!-- CHAT -->
+<div id="chat" class="hidden card h-[400px] flex flex-col justify-between">
+
+    <div id="chatBox" class="flex-1 overflow-y-auto text-center text-gray-400">
+        <div class="mt-20">
+            <i data-lucide="bot" class="mx-auto mb-2"></i>
+            Ask questions about your meeting transcripts
+        </div>
+    </div>
+
+    <form id="chatForm" class="flex gap-2 mt-4">
+        <input id="query" class="chat-input" placeholder="Ask about your meetings..." required>
+        <button class="send-btn">➤</button>
+    </form>
+
+</div>
+
+<!-- TRANSCRIPT -->
+<div id="trans" class="hidden card">
+    <pre class="text-gray-300 whitespace-pre-wrap">{{ transcript }}</pre>
+</div>
+
+<script>
+lucide.createIcons();
+
+function showTab(id, el) {
+    document.getElementById("main").classList.add("hidden");
+    document.getElementById("chat").classList.add("hidden");
+    document.getElementById("trans").classList.add("hidden");
+
+    document.getElementById(id).classList.remove("hidden");
+
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    el.classList.add("active");
+}
+
+document.getElementById("chatForm").onsubmit = async function(e) {
+    e.preventDefault();
+
+    let query = document.getElementById("query").value;
+    let transcript = `{{ transcript | safe }}`;
+    let chatBox = document.getElementById("chatBox");
+
+    chatBox.innerHTML += `<div class="text-right"><span class="bg-green-500 p-2 rounded">${query}</span></div>`;
+
+    let res = await fetch("/chat", {
+        method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: `query=${query}&transcript=${transcript}`
+    });
+
+    let data = await res.text();
+
+    chatBox.innerHTML += `<div class="text-left"><span class="bg-slate-700 p-2 rounded">${data}</span></div>`;
+
+    document.getElementById("query").value = "";
+};
+</script>
+
+</body>
+</html>

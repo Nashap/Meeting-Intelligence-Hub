@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Meeting Intelligence Hub</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            background: #0b1210;
+            color: #e5e7eb;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Upload Box */
+        .upload-box {
+            background: #0f1a17;
+            border: 1px dashed rgba(34,197,94,0.25);
+            border-radius: 20px;
+            padding: 50px;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .upload-box:hover {
+            border-color: rgba(34,197,94,0.5);
+            box-shadow: 0 0 40px rgba(34,197,94,0.1);
+        }
+
+        .upload-icon {
+            background: rgba(34,197,94,0.15);
+            padding: 16px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .file-box {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .file-box:hover {
+            border-color: #22c55e;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+<!-- HEADER -->
+<div class="flex items-center gap-4 p-6 border-b border-slate-800">
+    <div class="bg-green-500/10 p-3 rounded-lg">
+        <i data-lucide="bar-chart-3" class="text-green-400"></i>
+    </div>
+    <div>
+        <h1 class="text-xl font-semibold">Meeting Intelligence Hub</h1>
+        <p class="text-gray-400 text-sm">Transform transcripts into actionable insights</p>
+    </div>
+</div>
+
+<!-- CENTER -->
+<div class="flex-1 flex items-center justify-center px-4">
+
+    <div class="w-full max-w-xl upload-box">
+
+        <!-- ICON -->
+        <div class="upload-icon">
+            <i data-lucide="upload" class="text-green-400"></i>
+        </div>
+
+        <!-- TITLE -->
+        <h2 class="text-xl font-semibold mb-2">Upload Meeting Transcripts</h2>
+        <p class="text-gray-400 mb-6">
+            Drag & drop .txt or .vtt files, or click to browse
+        </p>
+
+        <!-- FORM -->
+        <form action="/upload" method="POST" enctype="multipart/form-data" class="space-y-4">
+
+            <!-- Hidden input -->
+            <input type="file" name="file" id="fileInput" required class="hidden">
+
+            <!-- Custom file box -->
+            <label for="fileInput" class="file-box block max-w-md mx-auto">
+                <span id="fileText" class="text-gray-400">
+                    <i data-lucide="file-text" class="inline mr-2 text-green-400"></i>
+                    Click to choose file
+                </span>
+            </label>
+
+            <!-- Upload button -->
+            <button type="submit"
+                class="w-full max-w-md mx-auto bg-green-500 hover:bg-green-600 p-3 rounded-lg font-semibold transition block">
+                Upload File
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+<!-- JS -->
+<script>
+
+lucide.createIcons();
+
+// Show selected file name
+document.getElementById("fileInput").addEventListener("change", function() {
+    let fileName = this.files[0]?.name;
+
+    document.getElementById("fileText").innerHTML =
+        fileName
+        ? `<span class="text-green-400">${fileName}</span>`
+        : `Click to choose file`;
+});
+
+</script>
+
+</body>
+</html>
